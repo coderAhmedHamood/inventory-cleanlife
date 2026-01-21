@@ -48,7 +48,9 @@ const menuItems: MenuItem[] = [
       { id: 'deliveries', label: 'التوصيل', icon: <Truck className="w-4 h-4" />, path: '/operations/deliveries' },
       { id: 'transfers', label: 'التحويلات', icon: <ArrowLeftRight className="w-4 h-4" />, path: '/operations/transfers' },
       { id: 'adjustments', label: 'التسويات', icon: <PackageSearch className="w-4 h-4" />, path: '/operations/adjustments' },
+      { id: 'inventory-count', label: 'الجرد المادي', icon: <ClipboardList className="w-4 h-4" />, path: '/operations/inventory-count' },
       { id: 'scrap', label: 'الهالك', icon: <AlertCircle className="w-4 h-4" />, path: '/operations/scrap' },
+      { id: 'replenishment', label: 'تجديد المخزون', icon: <Package className="w-4 h-4" />, path: '/operations/replenishment' },
     ],
   },
   {

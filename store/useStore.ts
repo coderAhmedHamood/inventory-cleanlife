@@ -107,6 +107,46 @@ export interface InventoryAdjustment {
   moves: string[]
 }
 
+export interface InventoryCount {
+  id: string
+  reference: string
+  locationId: string
+  state: 'draft' | 'in_progress' | 'done' | 'cancel'
+  date: string
+  lines: InventoryCountLine[]
+}
+
+export interface InventoryCountLine {
+  id: string
+  productId: string
+  systemQty: number
+  countedQty: number
+  difference: number
+}
+
+export interface ScrapOrder {
+  id: string
+  reference: string
+  locationId: string
+  state: 'draft' | 'done' | 'cancel'
+  date: string
+  moves: string[]
+  reason?: string
+}
+
+export interface Replenishment {
+  id: string
+  reference: string
+  productId: string
+  locationId: string
+  requestedQty: number
+  orderedQty: number
+  receivedQty: number
+  state: 'draft' | 'ordered' | 'received' | 'done'
+  date: string
+  expectedDate?: string
+}
+
 export interface Partner {
   id: string
   code: string
@@ -145,6 +185,9 @@ interface StoreState {
   receipts: Receipt[]
   deliveryOrders: DeliveryOrder[]
   inventoryAdjustments: InventoryAdjustment[]
+  inventoryCounts: InventoryCount[]
+  scrapOrders: ScrapOrder[]
+  replenishments: Replenishment[]
   partners: Partner[]
   operationTypes: OperationType[]
   users: User[]
@@ -171,10 +214,18 @@ interface StoreState {
   updateDeliveryOrder: (id: string, order: Partial<DeliveryOrder>) => void
   addInventoryAdjustment: (adjustment: InventoryAdjustment) => void
   updateInventoryAdjustment: (id: string, adjustment: Partial<InventoryAdjustment>) => void
+  addInventoryCount: (count: InventoryCount) => void
+  updateInventoryCount: (id: string, count: Partial<InventoryCount>) => void
+  addScrapOrder: (order: ScrapOrder) => void
+  updateScrapOrder: (id: string, order: Partial<ScrapOrder>) => void
+  addReplenishment: (replenishment: Replenishment) => void
+  updateReplenishment: (id: string, replenishment: Partial<Replenishment>) => void
   addPartner: (partner: Partner) => void
   updatePartner: (id: string, partner: Partial<Partner>) => void
+  deletePartner: (id: string) => void
   addOperationType: (type: OperationType) => void
   updateOperationType: (id: string, type: Partial<OperationType>) => void
+  deleteOperationType: (id: string) => void
   getStockQuantity: (productId: string, locationId?: string) => number
   initializeDemoData: () => void
 }
@@ -311,6 +362,42 @@ export const useStore = create<StoreState>()(
           ),
         })),
 
+      addInventoryCount: (count) =>
+        set((state) => ({
+          inventoryCounts: [...state.inventoryCounts, count],
+        })),
+
+      updateInventoryCount: (id, updates) =>
+        set((state) => ({
+          inventoryCounts: state.inventoryCounts.map((c) =>
+            c.id === id ? { ...c, ...updates } : c
+          ),
+        })),
+
+      addScrapOrder: (order) =>
+        set((state) => ({
+          scrapOrders: [...state.scrapOrders, order],
+        })),
+
+      updateScrapOrder: (id, updates) =>
+        set((state) => ({
+          scrapOrders: state.scrapOrders.map((o) =>
+            o.id === id ? { ...o, ...updates } : o
+          ),
+        })),
+
+      addReplenishment: (replenishment) =>
+        set((state) => ({
+          replenishments: [...state.replenishments, replenishment],
+        })),
+
+      updateReplenishment: (id, updates) =>
+        set((state) => ({
+          replenishments: state.replenishments.map((r) =>
+            r.id === id ? { ...r, ...updates } : r
+          ),
+        })),
+
       addPartner: (partner) =>
         set((state) => ({
           partners: [...state.partners, partner],
@@ -323,6 +410,11 @@ export const useStore = create<StoreState>()(
           ),
         })),
 
+      deletePartner: (id) =>
+        set((state) => ({
+          partners: state.partners.filter((p) => p.id !== id),
+        })),
+
       addOperationType: (type) =>
         set((state) => ({
           operationTypes: [...state.operationTypes, type],
@@ -333,6 +425,11 @@ export const useStore = create<StoreState>()(
           operationTypes: state.operationTypes.map((t) =>
             t.id === id ? { ...t, ...updates } : t
           ),
+        })),
+
+      deleteOperationType: (id) =>
+        set((state) => ({
+          operationTypes: state.operationTypes.filter((t) => t.id !== id),
         })),
 
       getStockQuantity: (productId, locationId) => {
@@ -372,6 +469,9 @@ export const useStore = create<StoreState>()(
           receipts: demoData.receipts,
           deliveryOrders: demoData.deliveryOrders,
           inventoryAdjustments: demoData.inventoryAdjustments,
+          inventoryCounts: demoData.inventoryCounts,
+          scrapOrders: demoData.scrapOrders,
+          replenishments: demoData.replenishments,
           partners: demoData.partners,
           operationTypes: demoData.operationTypes,
           users: demoData.users,
@@ -515,6 +615,9 @@ function getDemoData() {
   ]
 
   const inventoryAdjustments: InventoryAdjustment[] = []
+  const inventoryCounts: InventoryCount[] = []
+  const scrapOrders: ScrapOrder[] = []
+  const replenishments: Replenishment[] = []
 
   const users: User[] = [
     {
@@ -542,6 +645,9 @@ function getDemoData() {
     receipts,
     deliveryOrders,
     inventoryAdjustments,
+    inventoryCounts,
+    scrapOrders,
+    replenishments,
     partners,
     operationTypes,
     users,
