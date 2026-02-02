@@ -20,6 +20,8 @@ import {
   Truck,
   PackageSearch,
   AlertCircle,
+  ChevronDown,
+  ChevronLeft,
 } from 'lucide-react'
 import { useStore } from '@/store/useStore'
 
@@ -89,6 +91,7 @@ const menuItems: MenuItem[] = [
 export default function Layout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [openItems, setOpenItems] = useState<Set<string>>(new Set())
   const { currentUser, initializeDemoData, warehouses } = useStore()
 
   useEffect(() => {
@@ -97,7 +100,35 @@ export default function Layout({ children }: { children: ReactNode }) {
     }
   }, [warehouses.length, initializeDemoData])
 
+  // تحديد العنصر المفتوح تلقائياً حسب الصفحة الحالية
+  useEffect(() => {
+    const activeItem = menuItems.find((item) => {
+      if (item.children) {
+        return item.children.some((child) => pathname === child.path || pathname.startsWith(child.path))
+      }
+      return pathname === item.path || pathname.startsWith(item.path)
+    })
+    
+    if (activeItem && activeItem.children) {
+      setOpenItems(new Set([activeItem.id]))
+    }
+  }, [pathname])
+
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
+
+  const toggleItem = (itemId: string) => {
+    setOpenItems((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId)
+      } else {
+        // إغلاق جميع العناصر الأخرى وفتح العنصر المحدد فقط
+        newSet.clear()
+        newSet.add(itemId)
+      }
+      return newSet
+    })
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -129,11 +160,27 @@ export default function Layout({ children }: { children: ReactNode }) {
               <div key={item.id}>
                 {item.children ? (
                   <>
-                    <div className="flex items-center gap-3 px-3 py-2 text-gray-700 font-medium">
-                      {item.icon}
-                      {sidebarOpen && <span>{item.label}</span>}
-                    </div>
-                    {sidebarOpen && (
+                    <button
+                      onClick={() => toggleItem(item.id)}
+                      className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg transition-colors ${
+                        openItems.has(item.id)
+                          ? 'bg-primary-50 text-primary-600'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {item.icon}
+                        {sidebarOpen && <span className="font-medium">{item.label}</span>}
+                      </div>
+                      {sidebarOpen && (
+                        openItems.has(item.id) ? (
+                          <ChevronDown className="w-4 h-4" />
+                        ) : (
+                          <ChevronLeft className="w-4 h-4" />
+                        )
+                      )}
+                    </button>
+                    {sidebarOpen && openItems.has(item.id) && (
                       <div className="mr-4 mt-1 space-y-1">
                         {item.children.map((child) => (
                           <Link
